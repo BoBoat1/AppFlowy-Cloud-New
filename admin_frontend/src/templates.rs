@@ -120,6 +120,7 @@ pub struct AdminHome<'a> {
 #[template(path = "components/admin_users.html")]
 pub struct AdminUsers<'a> {
   pub users: &'a [gotrue_entity::dto::User],
+  pub search_query: Option<String>,
 }
 
 #[derive(Template)]

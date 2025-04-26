@@ -1,4 +1,34 @@
 <div id="admin-users">
+  <div class="search-container" style="margin-bottom: 20px;">
+    <form hx-get="../../web/components/admin/users" hx-target="#admin-users">
+      <input 
+        type="text" 
+        name="search" 
+        placeholder="Search users by email..." 
+        value="{{ search_query|default:"" }}"
+        style="padding: 8px; width: 250px; border-radius: 4px; border: 1px solid #ccc;"
+      >
+      <button 
+        type="submit" 
+        class="button cyan"
+        style="margin-left: 8px;"
+      >
+        Search
+      </button>
+      {% if search_query %}
+      <a 
+        href="../../web/components/admin/users" 
+        hx-get="../../web/components/admin/users" 
+        hx-target="#admin-users" 
+        class="button"
+        style="margin-left: 8px;"
+      >
+        Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+
   <table>
     <tr>
       <th>Email</th>
@@ -30,5 +60,17 @@
       </td>
     </tr>
     {% endfor %}
+
+    {% if users|length == 0 %}
+    <tr>
+      <td colspan="3" style="text-align: center; padding: 20px;">
+        {% if search_query %}
+        No users found matching "{{ search_query }}".
+        {% else %}
+        No users found.
+        {% endif %}
+      </td>
+    </tr>
+    {% endif %}
   </table>
 </div>
