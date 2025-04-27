@@ -5,7 +5,7 @@ use gotrue_entity::{dto::User, sso::SSOProvider};
 use crate::{askama_entities::WorkspaceWithMembers, ext::entities::WorkspaceUsageLimits};
 
 #[derive(Template)]
-#[template(path = "pages/redirect.html")]
+#[template(path = "pages//redirect.html")]
 pub struct Redirect {
   pub redirect_url: String,
 }
