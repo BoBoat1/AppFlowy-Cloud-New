@@ -508,7 +508,7 @@ async fn admin_users_handler(
 
   render_template(templates::AdminUsers { 
     users: &users,
-    search_query: search_query.cloned(),
+    search_query: search_query.map(|s| s.to_string()),
   })
 }
 

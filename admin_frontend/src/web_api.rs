@@ -21,6 +21,7 @@ use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::CookieJar;
 use base64::engine::Engine;
 use base64::prelude::BASE64_STANDARD_NO_PAD;
+use chrono::{self, Utc, Duration};
 use gotrue::params::{
   AdminDeleteUserParams, AdminUserParams, CreateSSOProviderParams, GenerateLinkParams,
   MagicLinkParams,
