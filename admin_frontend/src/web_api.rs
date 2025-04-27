@@ -7,7 +7,7 @@ use crate::models::{AppState, WebApiLoginRequest};
 use crate::models::{
   LoginParams, OAuthRedirect, OAuthRedirectToken, WebApiAdminCreateUserRequest,
   WebApiChangePasswordRequest, WebApiCreateSSOProviderRequest, WebApiInviteUserRequest,
-  WebApiPutUserRequest,
+  WebApiPutUserRequest, WebApiGrantPremiumRequest,
 };
 use crate::response::WebApiResponse;
 use crate::session::{self, new_session_cookie, CodeSession, UserSession};
@@ -21,6 +21,7 @@ use axum_extra::extract::cookie::Cookie;
 use axum_extra::extract::CookieJar;
 use base64::engine::Engine;
 use base64::prelude::BASE64_STANDARD_NO_PAD;
+use chrono::{self, Utc, Duration};
 use gotrue::params::{
   AdminDeleteUserParams, AdminUserParams, CreateSSOProviderParams, GenerateLinkParams,
   MagicLinkParams,
@@ -60,6 +61,7 @@ pub fn router() -> Router<AppState> {
       "/admin/user/:email/generate-link",
       post(post_user_generate_link_handler),
     )
+    .route("/admin/user/:user_id/grant-premium", post(admin_grant_premium_handler))
     .route("/admin/sso", post(admin_create_sso_handler))
     .route("/admin/sso/:provider_id", delete(admin_delete_sso_handler))
 }
@@ -319,6 +321,56 @@ async fn admin_add_user_handler(
     .admin_add_user(&session.token.access_token, &add_user_params)
     .await?;
   Ok(WebApiResponse::<()>::from_str("User created".into()))
+}
+
+async fn admin_grant_premium_handler(
+  State(state): State<AppState>,
+  session: UserSession,
+  Path(user_id): Path<String>,
+  Form(param): Form<WebApiGrantPremiumRequest>,
+) -> Result<WebApiResponse<()>, WebApiError<'static>> {
+  // Get user details to find email
+  let user = state
+    .gotrue_client
+    .admin_user_details(&session.token.access_token, &user_id)
+    .await?;
+
+  // Calculate expiry date
+  let expires_at = chrono::Utc::now() + chrono::Duration::days(param.duration_days as i64);
+
+  // Create license for the user
+  let url = format!(
+    "{}/billing/api/v1/admin/grant-premium",
+    state.appflowy_cloud_url
+  );
+  
+  let subscription_data = serde_json::json!({
+    "email": user.email,
+    "subscription_plan": param.subscription_plan,
+    "expires_at": expires_at.to_rfc3339()
+  });
+
+  let client = reqwest::Client::new();
+  let resp = client
+    .post(&url)
+    .bearer_auth(&session.token.access_token)
+    .json(&subscription_data)
+    .send()
+    .await
+    .map_err(|e| WebApiError::new(
+      StatusCode::INTERNAL_SERVER_ERROR,
+      format!("Failed to grant premium: {}", e)
+    ))?;
+
+  if !resp.status().is_success() {
+    let error_text = resp.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+    return Err(WebApiError::new(
+      StatusCode::INTERNAL_SERVER_ERROR,
+      format!("Failed to grant premium: {}", error_text)
+    ));
+  }
+
+  Ok(WebApiResponse::<()>::from_str("Premium status granted".into()))
 }
 
 async fn login_refresh_handler(

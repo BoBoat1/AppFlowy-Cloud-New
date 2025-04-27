@@ -28,6 +28,50 @@
       </table>
     </form>
 
+    <hr style="margin: 20px 0;" />
+    
+    <h3>Grant Premium Access</h3>
+    <form
+      hx-post="../../web-api/admin/user/{{ user.id|escape }}/grant-premium"
+      hx-target="#premiumStatus"
+    >
+      <table>
+        <tr>
+          <td>Subscription Plan:</td>
+          <td>
+            <select name="subscription_plan" class="input" required>
+              <option value="pro">Pro</option>
+              <option value="team">Team</option>
+              <option value="ai_max">AI Max</option>
+              <option value="ai_local">AI Local</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Duration (days):</td>
+          <td>
+            <input
+              class="input"
+              type="number"
+              name="duration_days"
+              min="1"
+              value="30"
+              required
+            />
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td style="text-align: right">
+            <button type="submit" class="button cyan">Grant Premium</button>
+          </td>
+        </tr>
+      </table>
+    </form>
+    <div id="premiumStatus"></div>
+
+    <hr style="margin: 20px 0;" />
+
     <table>
       <tr>
         <td>
