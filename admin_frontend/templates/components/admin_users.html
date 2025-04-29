@@ -5,7 +5,7 @@
         type="text" 
         name="search" 
         placeholder="Search users by email..." 
-        value="{{ search_query|default:"" }}"
+        value="{{ search_query|default("") }}"
         style="padding: 8px; width: 250px; border-radius: 4px; border: 1px solid #ccc;"
       >
       <button 
