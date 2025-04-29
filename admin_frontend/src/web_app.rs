@@ -479,7 +479,10 @@ async fn admin_home_handler(
 async fn admin_users_handler(
   State(state): State<AppState>,
   session: UserSession,
+  Query(params): Query<std::collections::HashMap<String, String>>,
 ) -> Result<Html<String>, WebAppError> {
+  let search_query = params.get("search");
+  
   let users = state
     .gotrue_client
     .admin_list_user(&session.token.access_token, None)
@@ -493,9 +496,20 @@ async fn admin_users_handler(
     )
     .into_iter()
     .filter(|user| user.deleted_at.is_none())
+    .filter(|user| {
+      if let Some(query) = search_query {
+        if !query.is_empty() {
+          return user.email.to_lowercase().contains(&query.to_lowercase());
+        }
+      }
+      true
+    })
     .collect::<Vec<_>>();
 
-  render_template(templates::AdminUsers { users: &users })
+  render_template(templates::AdminUsers { 
+    users: &users,
+    search_query: search_query.cloned(),
+  })
 }
 
 async fn admin_user_details_handler(
