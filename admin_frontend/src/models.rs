@@ -54,6 +54,12 @@ pub struct WebApiCreateSSOProviderRequest {
 }
 
 #[derive(Deserialize)]
+pub struct WebApiGrantPremiumRequest {
+    pub subscription_plan: String,
+    pub duration_days: i32,
+}
+
+#[derive(Deserialize)]
 pub struct WebAppOAuthLoginRequest {
   // Use for Login
   pub refresh_token: Option<String>,
